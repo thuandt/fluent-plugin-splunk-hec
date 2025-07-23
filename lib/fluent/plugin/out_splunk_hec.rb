@@ -156,24 +156,7 @@ module Fluent::Plugin
 
     def start
       super
-      @conn = Net::HTTP::Persistent.new.tap do |c|
-        c.verify_mode = @insecure_ssl ? OpenSSL::SSL::VERIFY_NONE : OpenSSL::SSL::VERIFY_PEER
-        c.cert = OpenSSL::X509::Certificate.new File.read(@client_cert) if @client_cert
-        c.key = OpenSSL::PKey::RSA.new File.read(@client_key) if @client_key
-        c.ca_file = @ca_file
-        c.ca_path = @ca_path
-        c.ciphers = @ssl_ciphers
-        c.proxy   = :ENV
-        c.min_version = OpenSSL::SSL::TLS1_1_VERSION if @require_ssl_min_version
-
-        c.override_headers['Content-Type'] = 'application/json'
-        c.override_headers['User-Agent'] = "fluent-plugin-splunk_hec_out/#{VERSION}"
-        c.override_headers['Authorization'] = "Splunk #{@hec_token}"
-        c.override_headers['__splunk_app_name'] = "#{@app_name}"
-        c.override_headers['__splunk_app_version'] = "#{@app_version}"
-        @custom_headers.each do |header, value|
-          c.override_headers[header] = value
-        end
+      @conn = new_connection
       end
     end
 
@@ -330,6 +313,9 @@ module Fluent::Plugin
         c.override_headers['Authorization'] = "Splunk #{@hec_token}"
         c.override_headers['__splunk_app_name'] = "#{@app_name}"
         c.override_headers['__splunk_app_version'] = "#{@app_version}"
+        @custom_headers.each do |header, value|
+          c.override_headers[header] = value
+        end
       end
     end
 
