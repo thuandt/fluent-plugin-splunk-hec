@@ -157,7 +157,6 @@ module Fluent::Plugin
     def start
       super
       @conn = new_connection
-      end
     end
 
     def shutdown
